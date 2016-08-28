@@ -34,8 +34,8 @@ func attachHandler(r *mux.Router) {
 	//APIs handlers
 	r.HandleFunc("/", rootHandler).Methods("GET")
 	r.HandleFunc(GetRepoCreateURL(), basicAuthentication(repoCreateHandler, false)).Methods("POST")
-	r.HandleFunc(GetReposURL(), repoIndexHandler).Methods("GET")
-	r.HandleFunc(GetRepoURL(), repoShowHandler).Methods("GET")
-	r.HandleFunc(GetBranchesURL(), branchIndexHandler).Methods("GET")
-	r.HandleFunc(GetBranchURL(), branchShowHandler).Methods("GET")
+	r.HandleFunc(GetReposURL(), basicAuthentication(repoIndexHandler, true)).Methods("GET")
+	r.HandleFunc(GetRepoURL(), basicAuthentication(repoShowHandler, true)).Methods("GET")
+	r.HandleFunc(GetBranchesURL(), basicAuthentication(branchIndexHandler, true)).Methods("GET")
+	r.HandleFunc(GetBranchURL(), basicAuthentication(branchShowHandler, true)).Methods("GET")
 }
