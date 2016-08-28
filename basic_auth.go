@@ -4,21 +4,29 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"encoding/base64"
+  "log"
 	"net/http"
 	"os"
 	"strings"
 )
 
-func basicAuthentication(reqHandler http.HandlerFunc) http.HandlerFunc {
+func basicAuthentication(reqHandler http.HandlerFunc, checkAuthorization bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if config.AuthEnabled {
 			username, password, ok := r.BasicAuth()
 			if !ok {
-				renderUnauthorized(w, "Authentication failed - Provide Basic Authentication - username:password")
+				renderUnauthenticated(w, "Authentication failed - Provide Basic Authentication - username:password")
+				log.Println("Authentication failure – no basic authentication credentials found")
 				return
 			}
 			if !validate(username, password) {
-				renderUnauthorized(w, "Authentication failed - incorrect username or password")
+				renderUnauthenticated(w, "Authentication failed - incorrect username or password")
+				log.Println("Authentication failure – wrong credentials for user ", username)
+				return
+			}
+			if checkAuthorization && !authorize(username, r) {
+				renderUnauthorized(w, "You are not authorized to access this resource")
+				log.Println("Authorization failure by user " + username)
 				return
 			}
 		}
@@ -52,9 +60,20 @@ func matchPassword(savedPwd string, sentPwd string) bool {
 	return (pwdCheck == strings.Split(sentPwd, "{SHA}")[1])
 }
 
-func renderUnauthorized(w http.ResponseWriter, error string) {
+func authorize(authenticatedUser string, r *http.Request) bool {
+  repoUser, _, _ := GetParamValues(r)
+  return repoUser == "repos" || authenticatedUser == repoUser
+}
+
+func renderUnauthenticated(w http.ResponseWriter, error string) {
 	w.Header().Set("WWW-Authenticate", "Basic realm=\"\"")
 	w.WriteHeader(http.StatusUnauthorized)
+	errJSON := Error{Message: error}
+	WriteIndentedJSON(w, errJSON, "", "  ")
+}
+
+func renderUnauthorized(w http.ResponseWriter, error string) {
+	w.WriteHeader(http.StatusForbidden)
 	errJSON := Error{Message: error}
 	WriteIndentedJSON(w, errJSON, "", "  ")
 }

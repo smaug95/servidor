@@ -27,13 +27,13 @@ func GitServer() {
 
 func attachHandler(r *mux.Router) {
 	//git methods Handler
-	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/info/refs`, basicAuthentication(serviceHandler)).Methods("GET")
-	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/git-upload-pack`, basicAuthentication(uploadPackHandler)).Methods("POST")
-	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/git-receive-pack`, basicAuthentication(receivePackHandler)).Methods("POST")
+	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/info/refs`, basicAuthentication(serviceHandler, true)).Methods("GET")
+	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/git-upload-pack`, basicAuthentication(uploadPackHandler, true)).Methods("POST")
+	r.HandleFunc(`/{user-name}/{repo-name:([a-zA-Z0-9\-\.\_]+)}/git-receive-pack`, basicAuthentication(receivePackHandler, true)).Methods("POST")
 
 	//APIs handlers
 	r.HandleFunc("/", rootHandler).Methods("GET")
-	r.HandleFunc(GetRepoCreateURL(), basicAuthentication(repoCreateHandler)).Methods("POST")
+	r.HandleFunc(GetRepoCreateURL(), basicAuthentication(repoCreateHandler, false)).Methods("POST")
 	r.HandleFunc(GetReposURL(), repoIndexHandler).Methods("GET")
 	r.HandleFunc(GetRepoURL(), repoShowHandler).Methods("GET")
 	r.HandleFunc(GetBranchesURL(), branchIndexHandler).Methods("GET")
